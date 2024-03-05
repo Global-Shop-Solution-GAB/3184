@@ -1,0 +1,182 @@
+Program.Sub.ScreenSU.Start
+
+Gui.F_Order_Notes..Create
+Gui.F_Order_Notes..Caption("Internal Notes")
+Gui.F_Order_Notes..Size(5600,4800)
+Gui.F_Order_Notes..Position(0,0)
+Gui.F_Order_Notes..AlwaysOnTop(False)
+Gui.F_Order_Notes..FontName("Arial")
+Gui.F_Order_Notes..FontSize(8)
+Gui.F_Order_Notes..ForeColor(0)
+Gui.F_Order_Notes..Backcolor(-2147483633)
+Gui.F_Order_Notes..ControlBox(True)
+Gui.F_Order_Notes..MaxButton(True)
+Gui.F_Order_Notes..MinButton(True)
+Gui.F_Order_Notes..MousePointer(0)
+Gui.F_Order_Notes..Moveable(True)
+Gui.F_Order_Notes..Sizeable(True)
+Gui.F_Order_Notes..ShowInTaskBar(True)
+Gui.F_Order_Notes..TitleBar(True)
+
+Gui.F_Order_Notes..Event(resize,f_order_notes_resize)
+Gui.F_Order_Notes..Event(unload,f_order_notes_unload)
+
+Gui.F_Order_Notes.txtOrderNo.Create(textbox)
+Gui.F_Order_Notes.txtOrderNo.Text("")
+Gui.F_Order_Notes.txtOrderNo.Visible(True)
+Gui.F_Order_Notes.txtOrderNo.Size(1500,300)
+Gui.F_Order_Notes.txtOrderNo.Zorder(0)
+Gui.F_Order_Notes.txtOrderNo.Position(200,200)
+Gui.F_Order_Notes.txtOrderNo.Enabled(False)
+Gui.F_Order_Notes.txtOrderNo.Alignment(0)
+Gui.F_Order_Notes.txtOrderNo.FontName("Arial")
+Gui.F_Order_Notes.txtOrderNo.FontSize(8)
+Gui.F_Order_Notes.txtOrderNo.Backcolor(-2147483643)
+Gui.F_Order_Notes.txtOrderNo.BorderStyle(1)
+Gui.F_Order_Notes.txtOrderNo.TabStop(True)
+Gui.F_Order_Notes.txtOrderNo.TabIndex(0)
+Gui.F_Order_Notes.txtOrderNo.Tooltip("")
+Gui.F_Order_Notes.txtOrderNo.ControlGroup(0)
+Gui.F_Order_Notes.txtOrderNo.DefaultValue("")
+
+
+Gui.F_Order_Notes.txtNotes.Create(textboxm)
+Gui.F_Order_Notes.txtNotes.Visible(True)
+Gui.F_Order_Notes.txtNotes.Size(5000,3000)
+Gui.F_Order_Notes.txtNotes.Zorder(0)
+Gui.F_Order_Notes.txtNotes.Position(200,600)
+Gui.F_Order_Notes.txtNotes.Enabled(True)
+Gui.F_Order_Notes.txtNotes.Alignment(0)
+Gui.F_Order_Notes.txtNotes.FontName("Arial")
+Gui.F_Order_Notes.txtNotes.FontSize(8)
+Gui.F_Order_Notes.txtNotes.Backcolor(-2147483643)
+Gui.F_Order_Notes.txtNotes.BorderStyle(1)
+Gui.F_Order_Notes.txtNotes.MaxLength(0)
+Gui.F_Order_Notes.txtNotes.NumericOnly(0)
+Gui.F_Order_Notes.txtNotes.TabStop(True)
+Gui.F_Order_Notes.txtNotes.TabIndex(1)
+Gui.F_Order_Notes.txtNotes.Text("")
+Gui.F_Order_Notes.txtNotes.Tooltip("")
+Gui.F_Order_Notes.txtNotes.ControlGroup(0)
+Gui.F_Order_Notes.txtNotes.DefaultValue("")
+
+
+Gui.F_Order_Notes.cmdSave.Create(button)
+Gui.F_Order_Notes.cmdSave.Caption("Save")
+Gui.F_Order_Notes.cmdSave.Visible(True)
+Gui.F_Order_Notes.cmdSave.Size(855,375)
+Gui.F_Order_Notes.cmdSave.Zorder(0)
+Gui.F_Order_Notes.cmdSave.Position(200,3700)
+Gui.F_Order_Notes.cmdSave.Enabled(True)
+Gui.F_Order_Notes.cmdSave.FontName("Arial")
+Gui.F_Order_Notes.cmdSave.FontSize(8)
+Gui.F_Order_Notes.cmdSave.TabStop(True)
+Gui.F_Order_Notes.cmdSave.TabIndex(2)
+Gui.F_Order_Notes.cmdSave.Tooltip("")
+Gui.F_Order_Notes.cmdSave.ControlGroup(0)
+Gui.F_Order_Notes.cmdSave.DefaultValue("")
+
+Gui.F_Order_Notes.cmdSave.Event(click,cmdsave_click)
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Coded by: SMC
+'Project Start Date: 11/4/2010
+'Hooks:
+'  OES0200A-POPULATE-HOOK (000011560)
+'  OES0200A-SCRIPT-1-HOOK� (000011910)
+'Notes:
+'  PWP Quote 1611 for Customer GKD
+'  Add internal notes screen not to be printed, but to be viewed only.
+'  Screen should show order number and a memo text field.  Data will be saved in a custom table.
+'  They will be allowed to view, add, change the note for a given order when the script 1 button is pressed from the sales order header screen (hook 11,910).
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,11560)
+	V.Passed.000201.Set("Internal Notes")
+	F.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+
+F.ODBC.Connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+
+V.Local.sOrderNo.Declare(String)
+F.Intrinsic.String.LPad(V.Passed.000003,"0",7,V.Local.sOrderNo)
+Gui.F_Order_Notes.txtOrderNo.Text(V.local.sOrderNo)
+F.Intrinsic.Control.CallSub(Load_notes)
+
+Program.Sub.Main.End
+
+program.sub.f_order_notes_unload.start
+F.ODBC.Connection!conx.Close
+F.Intrinsic.Control.End
+
+program.sub.f_order_notes_unload.end
+
+program.sub.cmdsave_click.start
+f.Intrinsic.Control.CallSub(Save_notes)
+
+program.sub.cmdsave_click.end
+
+program.sub.f_order_notes_resize.start
+V.Local.width.declare(Long)
+V.Local.height.Declare(Long)
+
+F.Intrinsic.Control.If(V.Screen.F_Order_Notes.Height,<,3000)
+	Gui.F_Order_Notes..Size(V.Screen.F_Order_Notes.Width,3000)
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.If(V.Screen.F_Order_Notes.Width,<,5000)
+	Gui.F_Order_Notes..Size(5000,V.Screen.F_Order_Notes.Height)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Math.Sub(V.Screen.F_Order_Notes.Height,1800,V.Local.height)
+F.Intrinsic.Math.Sub(V.Screen.F_Order_Notes.Width,600,V.Local.width)
+Gui.F_Order_Notes.txtNotes.Size(V.Local.width,V.Local.height)
+
+F.Intrinsic.Math.Add(V.Screen.F_Order_Notes!txtNotes.Height,700,V.Local.height)
+Gui.F_Order_Notes.cmdSave.Position(V.Screen.F_Order_Notes!cmdSave.Left,V.Local.height)
+
+program.sub.f_order_notes_resize.end
+
+Program.Sub.Load_Notes.Start
+V.Local.sQuery.Declare(String)
+
+F.Intrinsic.String.Concat("SELECT * FROM ATG_3184_ORDER_NOTES WHERE ORDER_NO='",V.Screen.F_Order_Notes!txtOrderNo.Text,"'",V.Local.sQuery)
+F.ODBC.Connection!conx.OpenRecordsetRO("rstNotes",V.Local.sQuery)
+F.Intrinsic.Control.If(V.ODBC.conx!rstNotes.EOF,<>,True)
+	Gui.F_Order_Notes.txtNotes.Text(V.ODBC.conx!rstNotes.FieldVal!NOTES)
+F.Intrinsic.Control.EndIf
+F.ODBC.conx!rstNotes.Close
+
+Gui.F_Order_Notes..Show
+
+Program.Sub.Load_Notes.End
+
+Program.Sub.Save_Notes.Start
+V.Local.sQuery.Declare(String)
+
+F.Intrinsic.String.Concat("SELECT * FROM ATG_3184_ORDER_NOTES WHERE ORDER_NO='",V.Screen.F_Order_Notes!txtOrderNo.Text,"'",V.Local.sQuery)
+F.ODBC.Connection!conx.OpenRecordsetRW("rstNotes",V.Local.sQuery)
+F.Intrinsic.Control.If(V.ODBC.conx!rstNotes.EOF,=,True)
+	F.ODBC.conx!rstNotes.AddNew
+	F.ODBC.conx!rstNotes.Set!ORDER_NO(V.Screen.F_Order_Notes!txtOrderNo.Text)
+F.Intrinsic.Control.EndIf
+F.ODBC.conx!rstNotes.Set!NOTES(V.Screen.F_Order_Notes!txtNotes.Text)
+
+F.ODBC.conx!rstNotes.Update
+F.ODBC.conx!rstNotes.Close
+
+F.Intrinsic.Control.CallSub(F_order_notes_unload)
+
+
+Program.Sub.Save_Notes.End
+
+
+
+
+Program.Sub.Comments.Start
+${$0$}$$}$$}$12:00:00 AM$}$False
+Program.Sub.Comments.End
